@@ -11,8 +11,8 @@ This project was created for hackUMBC 2025. It is an interactive game that aims 
 
 ## Running the Project:
 1. Clone this project locally
-2. Run 'npm install' in your bash / command line
-3. Run 'npm run dev' in your bash / command line
+2. Run `npm install` in your bash / command line
+3. Run `npm run dev` in your bash / command line
 4. Enjoy the game!
 
 ## Dependencies:
