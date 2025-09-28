@@ -3,7 +3,7 @@
     min-height: 100vh;
     background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    padding: 2rem 1rem;
+    padding: 6rem 1rem 2rem 1rem; /* Added top padding for navbar */
     position: relative;
 }
 
@@ -290,7 +290,7 @@
 /* Responsive Design */
 @media (max-width: 768px) {
     .maze-management {
-        padding: 1rem;
+        padding: 5rem 1rem 1rem 1rem; /* Adjusted for mobile navbar */
     }
     
     .main-title {
