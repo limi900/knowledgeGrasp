@@ -30,6 +30,32 @@ export default function MazeManagement({ onCreateNew, onLoadSaved }) {
     onLoadSaved();
   };
 
+  const handleDeleteMaze = (mazeIndex, mazeName, event) => {
+    // Stop event propagation to prevent loading the maze
+    event.stopPropagation();
+    
+    // Show confirmation dialog
+    const confirmed = window.confirm(
+      `Are you sure you want to delete "${mazeName}"? This action cannot be undone.`
+    );
+    
+    if (confirmed) {
+      try {
+        // Remove the maze from the array
+        const updatedMazes = savedMazes.filter((_, index) => index !== mazeIndex);
+        setSavedMazes(updatedMazes);
+        
+        // Update localStorage
+        localStorage.setItem(`savedMazes_${currentUser?.email}`, JSON.stringify(updatedMazes));
+        
+        console.log(`Deleted maze: ${mazeName}`);
+      } catch (error) {
+        console.error('Error deleting maze:', error);
+        alert('Failed to delete maze. Please try again.');
+      }
+    }
+  };
+
   const formatDate = (timestamp) => {
     return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -74,8 +100,17 @@ export default function MazeManagement({ onCreateNew, onLoadSaved }) {
                 {savedMazes.map((maze, index) => (
                   <div key={index} className="saved-maze-card" onClick={() => handleLoadMaze(maze.data)}>
                     <div className="maze-header">
-                      <h4 className="maze-name">{maze.name}</h4>
-                      <span className="maze-date">{formatDate(maze.savedAt)}</span>
+                      <div className="maze-title-section">
+                        <h4 className="maze-name">{maze.name}</h4>
+                        <span className="maze-date">{formatDate(maze.savedAt)}</span>
+                      </div>
+                      <button 
+                        className="delete-maze-button"
+                        onClick={(e) => handleDeleteMaze(index, maze.name, e)}
+                        title="Delete maze"
+                      >
+                        🗑️
+                      </button>
                     </div>
                     <div className="maze-stats">
                       <div className="stat">
