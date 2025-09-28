@@ -1,21 +1,27 @@
 import { useState } from 'react'
 import './App.css'
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import SignUpPage from "./authenticationPages/SignUpPage.jsx";
 import LoginPage from "./authenticationPages/LoginPage.jsx";
 import UnidentifiedUserPage from './authenticationPages/UnidentifiedUserPage';
+import HomePage from './components/HomePage';
 
-
-
-function App() {
-  const [count, setCount] = useState(0)
+function AppContent() {
+  const { currentUser } = useAuth();
 
   return (
-    <>  
-      <UnidentifiedUserPage></UnidentifiedUserPage>
-      {/* <SignUpPage></SignUpPage>
-      <LoginPage></LoginPage> */}
+    <>
+      {currentUser ? <HomePage /> : <UnidentifiedUserPage />}
     </>
-  )
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }
 
 export default App

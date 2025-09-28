@@ -13,32 +13,48 @@ export default function UnidentifiedUserPage() {
 
 
   return (
-    <div>
-        <h1>Welcome to Knowledge Grasp</h1>
+    <div className="hero-container">
+        <div className="hero-content">
+            <div className="game-logo">🎮 KNOWLEDGE QUEST</div>
+            
+            <h1 className="hero-title">Eat Questions, Not Just Food!</h1>
+            
+            <h2 className="hero-subtitle">The Ultimate Learning Adventure</h2>
+            
+            <p className="game-description">
+                Navigate through mazes, collect knowledge pellets, and answer questions to level up your skills!
+            </p>
+            
+            <p className="game-description">
+                Just like Pac-Man, but instead of avoiding ghosts, you're avoiding wrong answers!
+            </p>
 
-        <h2>loremvrevjkef vkruev krfe</h2>
-        <p>jrneivn kjreq;a </p>
-        <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Recusandae officia totam maiores cupiditate autem vero quo distinctio, quas eaque itaque pariatur alias consequuntur fugit neque vel a velit assumenda dolores!</p>
-        <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit. Sapiente consequuntur error accusamus iste molestiae enim nostrum? Et asperiores soluta sequi iure labore, praesentium quis, distinctio ipsam facere veniam debitis fugit?</p>
-
-        <p> We hope you have fun while learning</p>
-
-        <h2>Get started!!</h2>
-
-
-        <div>
-
-        <button onClick={() => setTypeOfAuth("signup")}>Sign Up</button>
-        <button onClick={() => setTypeOfAuth("login")}>Log In</button>
-
-
-        <div>
-          {typeOfAuth === "signup" && <SignUpPage />}
-          {typeOfAuth === "login" && <LoginPage />}
         </div>
-  
-      </div>
-  </div>
+
+        <div className="cta-section">
+            <h2 className="hero-subtitle">Ready to Play?</h2>
+            
+            <div className="cta-buttons">
+                <button 
+                    className="cta-button primary" 
+                    onClick={() => setTypeOfAuth("signup")}
+                >
+                    Sign Up
+                </button>
+                <button 
+                    className="cta-button secondary" 
+                    onClick={() => setTypeOfAuth("login")}
+                >
+                    Login
+                </button>
+            </div>
+        </div>
+
+        <div className="auth-form-container">
+            {typeOfAuth === "signup" && <SignUpPage />}
+            {typeOfAuth === "login" && <LoginPage />}
+        </div>
+    </div>
 
 
 
