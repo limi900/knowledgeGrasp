@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../src/contexts/AuthContext';
-import NavBar from '../../src/components/NavBar';
 import './PacmanScene.css';
 import PacmanGame from './PacmanGame.jsx';
 
@@ -16,6 +15,16 @@ export default function PacmanScene() {
   const [answered, setAnswered] = useState(false);
   const [wasCorrect, setWasCorrect] = useState(null);
   const [activeTopicTitle, setActiveTopicTitle] = useState('');
+  
+  // Game progress state
+  const [gameScore, setGameScore] = useState(0);
+  const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [totalGameQuestions, setTotalGameQuestions] = useState(0);
+  const [remainingPellets, setRemainingPellets] = useState(0);
+  
+  // Transition state
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [questionCooldown, setQuestionCooldown] = useState(false);
 
   useEffect(() => {
     // Get maze data from localStorage (set by HomePage after backend response)
@@ -52,21 +61,76 @@ export default function PacmanScene() {
   }, [mazeData, topicIndex, questionIndex]);
 
   const handleOptionClick = (option) => {
-    if (!currentQuestion || answered) return;
+    if (!currentQuestion || answered || questionCooldown) return;
     const isCorrect = option === currentQuestion.correct_answer;
     setWasCorrect(isCorrect);
     setAnswered(true);
     if (isCorrect) {
       setQuizScore((s) => s + 1);
     }
+    
+    // Set cooldown to prevent immediate new questions
+    setQuestionCooldown(true);
+    setTimeout(() => {
+      setQuestionCooldown(false);
+    }, 2000); // 2 second cooldown after answering
   };
 
   const handleQuestionTrigger = ({ topicTitle, topicIndex: tIdx, questionIndex: qIdx, question }) => {
-    setActiveTopicTitle(topicTitle || '');
-    setTopicIndex(tIdx || 0);
-    setQuestionIndex(qIdx || 0);
+    // Don't change question if in cooldown period
+    if (questionCooldown) return;
+    
+    // Start transition
+    setIsTransitioning(true);
+    
+    // Clear current state
     setAnswered(false);
     setWasCorrect(null);
+    
+    // After a brief delay, update the question
+    setTimeout(() => {
+      setActiveTopicTitle(topicTitle || '');
+      setTopicIndex(tIdx || 0);
+      setQuestionIndex(qIdx || 0);
+      setIsTransitioning(false);
+    }, 150);
+  };
+
+  const handleScoreUpdate = ({ questionsAnswered, totalQuestions, remainingPellets }) => {
+    setQuestionsAnswered(questionsAnswered);
+    setTotalGameQuestions(totalQuestions);
+    setRemainingPellets(remainingPellets);
+  };
+
+  const handleSaveMaze = () => {
+    if (!mazeData) return;
+    
+    const mazeName = prompt('Enter a name for your maze:', `Maze ${new Date().toLocaleDateString()}`);
+    if (!mazeName) return;
+    
+    try {
+      const savedMazes = JSON.parse(localStorage.getItem(`savedMazes_${currentUser?.email}`) || '[]');
+      
+      const mazeToSave = {
+        name: mazeName,
+        data: mazeData,
+        progress: {
+          score: quizScore,
+          questionsAnswered: questionsAnswered,
+          totalQuestions: totalGameQuestions,
+          remainingPellets: remainingPellets
+        },
+        savedAt: Date.now()
+      };
+      
+      savedMazes.push(mazeToSave);
+      localStorage.setItem(`savedMazes_${currentUser?.email}`, JSON.stringify(savedMazes));
+      
+      alert('Maze saved successfully!');
+    } catch (error) {
+      console.error('Error saving maze:', error);
+      alert('Failed to save maze. Please try again.');
+    }
   };
 
   if (loading) {
@@ -74,7 +138,6 @@ export default function PacmanScene() {
 
       <div>
           <div className="pacman-scene-container">
-          <NavBar />
           <div className="loading-screen">
             <div className="loading-content">
               <h1 className="loading-title">🎮 Generating Your Maze...</h1>
@@ -91,89 +154,79 @@ export default function PacmanScene() {
 
   return (
     <div className="pacman-scene-container">
-      <NavBar />
-      
-      <div className="game-area">
-        <div className="game-header">
-          <h1 className="game-title">🎮 Knowledge Quest Maze</h1>
-          <div className="game-stats">
-            <div className="stat">
-              <span className="stat-label">Score:</span>
-              <span className="stat-value">{quizScore}</span>
-            </div>
-            <div className="stat">
-              <span className="stat-label">Questions:</span>
-              <span className="stat-value">{totalQuestions > 0 ? `1/${totalQuestions}` : '0/0'}</span>
+      <div className="game-layout">
+        {/* Fixed Header Section */}
+        <div className="game-header-section">
+          <div className="game-header">
+            <h1 className="game-title">🎮 Knowledge Quest Maze</h1>
+            <div className="game-stats">
+              <div className="stat">
+                <span className="stat-label">Score:</span>
+                <span className="stat-value">{quizScore}</span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">Questions:</span>
+                <span className="stat-value">{totalGameQuestions > 0 ? `${questionsAnswered}/${totalGameQuestions}` : '0/0'}</span>
+              </div>
+              <div className="stat">
+                <span className="stat-label">Pellets:</span>
+                <span className="stat-value">{remainingPellets}</span>
+              </div>
+              <button className="save-button" onClick={handleSaveMaze}>
+                💾 Save Maze
+              </button>
             </div>
           </div>
         </div>
 
-        <div className="current-question">
-          {activeTopicTitle ? `${activeTopicTitle}` : ''}
-        </div>
-        <div className="current-question" style={{ fontSize: '1.25rem' }}>
-          {currentQuestion?.question || 'No question available'}
-        </div>
-
-        <div>
-          {currentQuestion?.options?.map((opt, idx) => (
-            <button
-              key={idx}
-              className="possible-answer"
-              onClick={() => handleOptionClick(opt)}
-              disabled={answered}
-              style={{
-                display: 'block',
-                margin: '0.5rem 0',
-                padding: '0.75rem 1rem',
-                borderRadius: '10px',
-                border: '1px solid rgba(255,255,255,0.2)',
-                background:
-                  answered && opt === currentQuestion.correct_answer
-                    ? 'rgba(46, 204, 113, 0.2)'
-                    : 'rgba(255,255,255,0.08)',
-                color: '#ecf0f1',
-                cursor: answered ? 'default' : 'pointer',
-                textAlign: 'left',
-                width: '100%'
-              }}
-            >
-              {opt}
-            </button>
-          ))}
-          {answered && (
-            <div style={{ color: wasCorrect ? '#2ecc71' : '#e74c3c', marginTop: '0.5rem' }}>
-              {wasCorrect ? 'Correct!' : `Incorrect. Answer: ${currentQuestion?.correct_answer}`}
+        {/* Fixed Question Section */}
+        <div className="question-section">
+          <div className={`question-container ${isTransitioning ? 'transitioning' : ''}`}>
+            <div className="question-topic">
+              {activeTopicTitle ? `${activeTopicTitle}` : 'Waiting for question...'}
             </div>
-          )}
+            <div className="question-text">
+              {currentQuestion?.question || 'Collect a pellet to get a question!'}
+            </div>
+            
+            <div className="answer-options">
+              {currentQuestion?.options?.map((opt, idx) => (
+                <button
+                  key={idx}
+                  className={`answer-option ${answered && opt === currentQuestion.correct_answer ? 'correct' : ''} ${answered || questionCooldown ? 'disabled' : ''}`}
+                  onClick={() => handleOptionClick(opt)}
+                  disabled={answered || isTransitioning || questionCooldown}
+                >
+                  {opt}
+                </button>
+              ))}
+            </div>
+            
+            {answered && (
+              <div className={`answer-feedback ${wasCorrect ? 'correct' : 'incorrect'}`}>
+                {wasCorrect ? '✅ Correct!' : `❌ Incorrect. Answer: ${currentQuestion?.correct_answer}`}
+              </div>
+            )}
+            
+            {questionCooldown && !answered && (
+              <div className="cooldown-message">
+                🎯 Collect another pellet to get a new question!
+              </div>
+            )}
+          </div>
         </div>
 
-
-        {/* <div className="maze-container">
-          <div className="maze-placeholder">
-            <div className="pacman-character">👤</div>
-            <div className="question-pellet">❓</div>
-            <div className="question-pellet">❓</div>
-            <div className="question-pellet">❓</div>
-            <div className="question-pellet">❓</div>
-            <p className="maze-text">Maze will be rendered here</p>
-            <p className="maze-subtext">Collect question pellets to learn!</p>
+        {/* Fixed Game Section */}
+        <div className="game-section">
+          <div className="maze-container">
+            <div className="maze-placeholder">
+              <PacmanGame 
+                data={mazeData} 
+                onQuestionTrigger={handleQuestionTrigger}
+                onScoreUpdate={handleScoreUpdate}
+              />
+            </div>
           </div>
-        </div> */}
-
-        <div className="maze-container">
-          <div className="maze-placeholder">
-            <PacmanGame data={mazeData} onQuestionTrigger={handleQuestionTrigger} />
-          </div>
-        </div>
-
-
-
-        <div className="game-controls">
-          <button className="control-button">←</button>
-          <button className="control-button">↑</button>
-          <button className="control-button">↓</button>
-          <button className="control-button">→</button>
         </div>
       </div>
     </div>

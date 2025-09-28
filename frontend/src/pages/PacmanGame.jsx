@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export default function PacmanGame({ data, onQuestionTrigger }) {
+export default function PacmanGame({ data, onQuestionTrigger, onScoreUpdate }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -32,6 +32,9 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
     let ghosts = [];
     let lives = 3;
     let foodCount = 0;
+    let totalQuestions = 0;
+    let questionsAnswered = 0;
+    let gameInitialized = false;
 
     const RIGHT = 4;
     const LEFT = 2;
@@ -99,12 +102,25 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
       return list;
     };
 
-    const getEmptyTiles = () => {
+    const getReachableTiles = () => {
+      const rows = map.length;
+      const cols = map[0].length;
+      const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
       const tiles = [];
-      for (let y = 0; y < map.length; y++) {
-        for (let x = 0; x < map[0].length; x++) {
-          if (map[y][x] !== 1) {
-            tiles.push({ x, y });
+      const queue = [];
+      const start = { x: 1, y: 1 };
+      if (map[start.y]?.[start.x] === 1) return tiles;
+      queue.push(start);
+      visited[start.y][start.x] = true;
+      const dirs = [ [1,0], [-1,0], [0,1], [0,-1] ];
+      while (queue.length) {
+        const { x, y } = queue.shift();
+        tiles.push({ x, y });
+        for (const [dx, dy] of dirs) {
+          const nx = x + dx, ny = y + dy;
+          if (ny >= 0 && ny < rows && nx >= 0 && nx < cols && !visited[ny][nx] && map[ny][nx] !== 1) {
+            visited[ny][nx] = true;
+            queue.push({ x: nx, y: ny });
           }
         }
       }
@@ -112,9 +128,24 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
     };
 
     const distributePellets = () => {
+      // Clear existing pellets first
+      pellets.length = 0;
+      
       const questions = flattenQuestions();
-      const emptyTiles = getEmptyTiles();
-      if (questions.length === 0 || emptyTiles.length === 0) return;
+      const emptyTiles = getReachableTiles();
+      
+      if (questions.length === 0 || emptyTiles.length === 0) {
+        console.log('No questions or empty tiles available for pellet distribution');
+        return;
+      }
+      
+      // Set total questions count
+      totalQuestions = questions.length;
+      questionsAnswered = 0;
+      
+      console.log(`Distributing ${totalQuestions} pellets across ${emptyTiles.length} empty tiles`);
+      
+      // Distribute pellets evenly across available empty tiles
       const step = Math.max(1, Math.floor(emptyTiles.length / questions.length));
       for (let i = 0; i < questions.length; i++) {
         const baseIndex = i * step;
@@ -122,6 +153,7 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
         const idx = Math.min(emptyTiles.length - 1, baseIndex + randJitter);
         const tile = emptyTiles[idx];
         const color = topicPalette[questions[i].topicIndex % topicPalette.length];
+        
         pellets.push({
           x: tile.x,
           y: tile.y,
@@ -129,9 +161,12 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
           topicIndex: questions[i].topicIndex,
           questionIndex: questions[i].questionIndex,
           topicTitle: questions[i].topicTitle,
+          question: questions[i].question
         });
       }
+      
       foodCount = pellets.length;
+      console.log(`Successfully distributed ${foodCount} pellets`);
     };
 
     const randomTargetForghosts = [
@@ -146,12 +181,35 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
       canvasContext.fillRect(x, y, width, height);
     };
 
+    const drawStar = (cx, cy, spikes, outerRadius, innerRadius, color) => {
+      let rot = Math.PI / 2 * 3;
+      let x = cx;
+      let y = cy;
+      const step = Math.PI / spikes;
+      canvasContext.beginPath();
+      canvasContext.moveTo(cx, cy - outerRadius);
+      for (let i = 0; i < spikes; i++) {
+        x = cx + Math.cos(rot) * outerRadius;
+        y = cy + Math.sin(rot) * outerRadius;
+        canvasContext.lineTo(x, y);
+        rot += step;
+        x = cx + Math.cos(rot) * innerRadius;
+        y = cy + Math.sin(rot) * innerRadius;
+        canvasContext.lineTo(x, y);
+        rot += step;
+      }
+      canvasContext.lineTo(cx, cy - outerRadius);
+      canvasContext.closePath();
+      canvasContext.fillStyle = color;
+      canvasContext.fill();
+    };
+
     class Pacman {
       constructor(x, y, width, height, speed) {
         this.x = x;
         this.y = y;
         this.width = width;
-        this.heigth = height;
+        this.height = height;
         this.speed = speed;
         this.currentDirection = RIGHT;
         this.nextDirection = this.currentDirection;
@@ -193,6 +251,9 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
       }
 
       moveForwards() {
+        const oldX = this.x;
+        const oldY = this.y;
+        
         switch (this.currentDirection) {
           case RIGHT:
             this.x += this.speed; break;
@@ -203,14 +264,38 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
           case DOWN:
             this.y += this.speed; break;
         }
+        
+        // Ensure we don't go outside the map boundaries
+        const mapWidth = map[0].length * blockSize;
+        const mapHeight = map.length * blockSize;
+        
+        if (this.x < 0) this.x = 0;
+        if (this.x + blockSize > mapWidth) this.x = mapWidth - blockSize;
+        if (this.y < 0) this.y = 0;
+        if (this.y + blockSize > mapHeight) this.y = mapHeight - blockSize;
       }
 
       checkCollision() {
+        // Get map coordinates
+        const mapX = this.getMapX();
+        const mapY = this.getMapY();
+        const mapXRight = this.getMapXRightSide();
+        const mapYRight = this.getMapYRightSide();
+        
+        // Check boundaries first
+        if (mapX < 0 || mapY < 0 || mapX >= map[0].length || mapY >= map.length) {
+          return true;
+        }
+        if (mapXRight < 0 || mapYRight < 0 || mapXRight >= map[0].length || mapYRight >= map.length) {
+          return true;
+        }
+        
+        // Check wall collisions
         if (
-          map[this.getMapY()][this.getMapX()] === 1 ||
-          map[this.getMapYRightSide()][this.getMapX()] === 1 ||
-          map[this.getMapY()][this.getMapXRightSide()] === 1 ||
-          map[this.getMapYRightSide()][this.getMapXRightSide()] === 1
+          map[mapY][mapX] === 1 ||
+          map[mapYRight][mapX] === 1 ||
+          map[mapY][mapXRight] === 1 ||
+          map[mapYRight][mapXRight] === 1
         ) {
           return true;
         }
@@ -228,7 +313,7 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
       }
 
       changeDirectionIfPossible() {
-        if (this.direction === this.nextDirection) return;
+        if (this.currentDirection === this.nextDirection) return;
         const tempDirection = this.currentDirection;
         this.currentDirection = this.nextDirection;
         this.moveForwards();
@@ -258,7 +343,7 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
           this.x,
           this.y,
           this.width,
-          this.heigth
+          this.height
         );
         canvasContext.restore();
       }
@@ -274,7 +359,7 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
         this.x = x;
         this.y = y;
         this.width = width;
-        this.heigth = height;
+        this.height = height;
         this.speed = speed;
         this.currentDirection = RIGHT;
         this.currentFrame = 1;
@@ -326,14 +411,38 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
           case UP: this.y -= this.speed; break;
           case DOWN: this.y += this.speed; break;
         }
+        
+        // Ensure we don't go outside the map boundaries
+        const mapWidth = map[0].length * blockSize;
+        const mapHeight = map.length * blockSize;
+        
+        if (this.x < 0) this.x = 0;
+        if (this.x + blockSize > mapWidth) this.x = mapWidth - blockSize;
+        if (this.y < 0) this.y = 0;
+        if (this.y + blockSize > mapHeight) this.y = mapHeight - blockSize;
       }
 
       checkCollision() {
+        // Get map coordinates
+        const mapX = this.getMapX();
+        const mapY = this.getMapY();
+        const mapXRight = this.getMapXRightSide();
+        const mapYRight = this.getMapYRightSide();
+        
+        // Check boundaries first
+        if (mapX < 0 || mapY < 0 || mapX >= map[0].length || mapY >= map.length) {
+          return true;
+        }
+        if (mapXRight < 0 || mapYRight < 0 || mapXRight >= map[0].length || mapYRight >= map.length) {
+          return true;
+        }
+        
+        // Check wall collisions
         if (
-          map[this.getMapY()][this.getMapX()] === 1 ||
-          map[this.getMapYRightSide()][this.getMapX()] === 1 ||
-          map[this.getMapY()][this.getMapXRightSide()] === 1 ||
-          map[this.getMapYRightSide()][this.getMapXRightSide()] === 1
+          map[mapY][mapX] === 1 ||
+          map[mapYRight][mapX] === 1 ||
+          map[mapY][mapXRight] === 1 ||
+          map[mapYRight][mapXRight] === 1
         ) {
           return true;
         }
@@ -417,18 +526,8 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
           this.x,
           this.y,
           this.width,
-          this.heigth
+          this.height
         );
-        canvasContext.beginPath();
-        canvasContext.strokeStyle = 'red';
-        canvasContext.arc(
-          this.x + blockSize / 2,
-          this.y + blockSize / 2,
-          this.range * blockSize,
-          0,
-          2 * Math.PI
-        );
-        canvasContext.stroke();
       }
 
       getMapX() { return parseInt(this.x / blockSize); }
@@ -462,30 +561,24 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
     };
 
     const drawFood = () => {
+      const starOuter = blockSize * 0.42;
+      const starInner = starOuter * 0.5;
       for (let i = 0; i < pellets.length; i++) {
         const p = pellets[i];
-        createRect(
-          p.x * blockSize + foodOffset * 1.5,
-          p.y * blockSize + foodOffset * 1.5,
-          foodOffset,
-          foodOffset,
-          p.color || foodColor
-        );
+        const cx = p.x * blockSize + blockSize / 2;
+        const cy = p.y * blockSize + blockSize / 2;
+        drawStar(cx, cy, 5, starOuter, starInner, p.color || foodColor);
       }
     };
 
     const drawScore = () => {
       canvasContext.font = '20px ARIAl';
       canvasContext.fillStyle = 'white';
-      const mapWidth = map[0].length * blockSize;
-      const offsetX = (canvas.width - mapWidth) / 2;
-      canvasContext.fillText('SCORE: ' + score, offsetX, blockSize * (map.length + 1));
+      canvasContext.fillText('SCORE: ' + score, 10, blockSize * (map.length + 1));
     };
 
     const drawLives = () => {
-      const mapWidth = map[0].length * blockSize;
-      const offsetX = (canvas.width - mapWidth) / 2;
-      const livesDrawingCoordinateX = offsetX + blockSize * 7;
+      const livesDrawingCoordinateX = blockSize * 7;
       const livesDrawingCoordinateY = blockSize * (map.length + 1);
       canvasContext.font = '20px ARIAl';
       canvasContext.fillStyle = 'white';
@@ -514,74 +607,77 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
     const drawGameOver = () => {
       canvasContext.font = '20px Emulogic';
       canvasContext.fillStyle = 'white';
-      const mapWidth = map[0].length * blockSize;
-      const offsetX = (canvas.width - mapWidth) / 2;
-      const centerX = offsetX + mapWidth / 2;
+      const centerX = canvas.width / 2;
       canvasContext.fillText('GAME OVER!', centerX - 60, 200);
     };
 
     const drawWin = () => {
       canvasContext.font = '20px Emulogic';
       canvasContext.fillStyle = 'white';
-      const mapWidth = map[0].length * blockSize;
-      const offsetX = (canvas.width - mapWidth) / 2;
-      const centerX = offsetX + mapWidth / 2;
+      const centerX = canvas.width / 2;
       canvasContext.fillText('YOU WIN!', centerX - 50, 200);
     };
 
     const draw = () => {
       createRect(0, 0, canvas.width, canvas.height, 'black');
       
-      // Calculate offset to center the map (35 columns * 20px = 700px, canvas is 900px)
-      const mapWidth = map[0].length * blockSize; // 35 * 20 = 700
-      const mapHeight = map.length * blockSize;   // 23 * 20 = 460
-      const offsetX = (canvas.width - mapWidth) / 2;  // (900 - 700) / 2 = 100
-      const offsetY = (canvas.height - mapHeight) / 2; // (420 - 460) / 2 = -20
-      
-      // Save context and translate to center the map
-      canvasContext.save();
-      canvasContext.translate(offsetX, offsetY);
-      
       drawWalls();
       drawFood();
       pacman.draw();
       drawGhosts();
-      
-      // Restore context for UI elements that should stay in original position
-      canvasContext.restore();
-      
       drawScore();
       drawLives();
     };
 
     const update = () => {
+      // Only move characters if game is initialized
+      if (!gameInitialized) return;
+      
       pacman.moveProcess();
+      
       // check pellet collisions (one question per pellet)
       for (let i = pellets.length - 1; i >= 0; i--) {
         const p = pellets[i];
         if (pacman.getMapX() === p.x && pacman.getMapY() === p.y) {
-          const topic = data?.topics?.[p.topicIndex];
-          const q = topic?.questions?.[p.questionIndex];
-          if (q && typeof onQuestionTrigger === 'function') {
+          // Trigger question display
+          if (typeof onQuestionTrigger === 'function') {
             onQuestionTrigger({
               topicTitle: p.topicTitle,
               topicIndex: p.topicIndex,
               questionIndex: p.questionIndex,
-              question: q,
+              question: p.question,
             });
           }
+          
+          // Remove pellet and update counters
           pellets.splice(i, 1);
-          score++;
+          questionsAnswered++;
+          
+          // Update parent component with progress (score is handled by quiz logic)
+          if (typeof onScoreUpdate === 'function') {
+            onScoreUpdate({
+              questionsAnswered: questionsAnswered,
+              totalQuestions: totalQuestions,
+              remainingPellets: pellets.length
+            });
+          }
+          
+          console.log(`Pellet collected! Score: ${score}, Questions answered: ${questionsAnswered}/${totalQuestions}`);
           break;
         }
       }
       
+      // Move ghosts
       for (let i = 0; i < ghosts.length; i++) {
         ghosts[i].moveProcess();
       }
+      
+      // Check ghost collision
       if (pacman.checkGhostCollision()) {
         restartGame();
       }
+      
+      // Check win condition
       if (pellets.length === 0 && foodCount > 0) {
         drawWin();
         if (gameInterval) clearInterval(gameInterval);
@@ -618,11 +714,14 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
     };
 
     const restartGame = () => {
+      console.log('Restarting game...');
       createNewPacman();
       createGhosts();
       lives--;
       if (lives === 0) {
         gameOver();
+      } else {
+        console.log(`Lives remaining: ${lives}`);
       }
     };
 
@@ -646,14 +745,29 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
 
     const startGameWhenImagesReady = () => {
       if (!pacmanFrames.complete || !ghostFrames.complete) return;
+      
+      console.log('Initializing game...');
+      
+      // Generate pellets and questions once at the start
       distributePellets();
+      
+      // Create game characters
       createNewPacman();
       createGhosts();
+      
+      // Start game loops
       if (animationTimerId) clearInterval(animationTimerId);
       animationTimerId = setInterval(() => pacman.changeAnimation(), 100);
       if (gameInterval) clearInterval(gameInterval);
       gameInterval = setInterval(gameLoop, 1000 / fps);
+      
+      // Add event listeners
       window.addEventListener('keydown', handleKeyDown);
+      
+      // Mark game as initialized
+      gameInitialized = true;
+      
+      console.log(`Game initialized with ${totalQuestions} questions and ${foodCount} pellets`);
     };
 
     if (pacmanFrames.complete && ghostFrames.complete) {
@@ -675,7 +789,7 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
   }, []);
 
   return (
-    <canvas ref={canvasRef} id="canvas" width="900" height="420"></canvas>
+    <canvas ref={canvasRef} id="canvas" width="700" height="440"></canvas>
   );
 }
 
