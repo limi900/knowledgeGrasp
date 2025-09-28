@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export default function PacmanGame() {
+export default function PacmanGame({ data, onQuestionTrigger }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -46,39 +46,93 @@ export default function PacmanGame() {
     ];
 
     const map = [
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
-      [1,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,1],
-      [1,2,1,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,1,2,1],
-      [1,2,1,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,1,2,1],
-      [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-      [1,2,1,1,1,2,1,2,1,1,1,1,1,2,1,2,1,1,1,2,1],
-      [1,2,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,2,1],
-      [1,1,1,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,1,1,1],
-      [0,0,0,0,1,2,1,2,2,2,2,2,2,2,1,2,1,0,0,0,0],
-      [1,1,1,1,1,2,1,2,1,1,2,1,1,2,1,2,1,1,1,1,1],
-      [1,2,2,2,2,2,2,2,1,2,2,2,1,2,2,2,2,2,2,2,1],
-      [1,1,1,1,1,2,1,2,1,2,2,2,1,2,1,2,1,1,1,1,1],
-      [0,0,0,0,1,2,1,2,1,1,1,1,1,2,1,2,1,0,0,0,0],
-      [0,0,0,0,1,2,1,2,2,2,2,2,2,2,1,2,1,0,0,0,0],
-      [1,1,1,1,1,2,2,2,1,1,1,1,1,2,2,2,1,1,1,1,1],
-      [1,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,1],
-      [1,2,1,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,1,2,1],
-      [1,2,2,2,1,2,2,2,2,2,1,2,2,2,2,2,1,2,2,2,1],
-      [1,1,2,2,1,2,1,2,1,1,1,1,1,2,1,2,1,2,2,1,1],
-      [1,2,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,2,1],
-      [1,2,1,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,1,2,1],
-      [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
-      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+      [1,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,1,2,2,2,1],
+      [1,2,1,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,1,2,1,2,1,2,1],
+      [1,2,1,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,1,2,1,2,1,2,1],
+      [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+      [1,2,1,1,1,2,1,2,1,1,1,1,1,2,1,2,1,1,1,2,1,2,1,1,1,2,1,2,1,1,1,2,1,2,1],
+      [1,2,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,2,1,2,2,2,2,2,1,2,2,2,1,2,2,2,1],
+      [1,1,1,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,1,1,1,1,1,1,1,2,1,1,1,2,1,1,1,1,1],
+      [0,0,0,0,1,2,1,2,2,2,2,2,2,2,1,2,1,0,0,0,0,0,0,0,1,2,1,2,2,2,2,2,2,2,1],
+      [1,1,1,1,1,2,1,2,1,1,2,1,1,2,1,2,1,1,1,1,1,1,1,1,1,2,1,2,1,1,2,1,1,2,1],
+      [1,2,2,2,2,2,2,2,1,2,2,2,1,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,1,2,2,2,1,2,1],
+      [1,1,1,1,1,2,1,2,1,2,2,2,1,2,1,2,1,1,1,1,1,1,1,1,1,2,1,2,1,2,2,2,1,2,1],
+      [0,0,0,0,1,2,1,2,1,1,1,1,1,2,1,2,1,0,0,0,0,0,0,0,1,2,1,2,1,1,1,1,1,2,1],
+      [0,0,0,0,1,2,1,2,2,2,2,2,2,2,1,2,1,0,0,0,0,0,0,0,1,2,1,2,2,2,2,2,2,2,1],
+      [1,1,1,1,1,2,2,2,1,1,1,1,1,2,2,2,1,1,1,1,1,1,1,1,1,2,2,2,1,1,1,1,1,2,1],
+      [1,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,1,2,2,2,1],
+      [1,2,1,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,1,2,1,2,1,1,1,2,1,1,1,2,1,2,1,2,1],
+      [1,2,2,2,1,2,2,2,2,2,1,2,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,2,1,2,2,2,1],
+      [1,1,2,2,1,2,1,2,1,1,1,1,1,2,1,2,1,2,2,1,1,1,1,2,1,2,1,2,1,1,1,1,1,2,1],
+      [1,2,2,2,2,2,1,2,2,2,1,2,2,2,1,2,2,2,2,2,1,2,2,2,2,2,1,2,2,2,1,2,2,2,1],
+      [1,2,1,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,1,2,1,2,1,1,1,1,1,1,1,2,1,2,1,1,1],
+      [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
+      [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
     ];
 
-    // Count food
+    // Prepare pellets generated from data (one per question) and topic colors
+    // We'll keep walls as 1, empty as 0; pellets are tracked separately
     for (let i = 0; i < map.length; i++) {
       for (let j = 0; j < map[0].length; j++) {
         if (map[i][j] === 2) {
-          foodCount++;
+          map[i][j] = 0;
         }
       }
     }
+
+    const topicPalette = [
+      '#f1c40f', '#3498db', '#e67e22', '#9b59b6', '#2ecc71', '#e74c3c', '#1abc9c', '#e84393'
+    ];
+    const pellets = [];
+
+    const flattenQuestions = () => {
+      const list = [];
+      if (data?.topics && Array.isArray(data.topics)) {
+        data.topics.forEach((topic, tIdx) => {
+          const qs = topic?.questions || [];
+          qs.forEach((q, qIdx) => {
+            list.push({ topicIndex: tIdx, questionIndex: qIdx, topicTitle: topic?.topic, question: q });
+          });
+        });
+      }
+      return list;
+    };
+
+    const getEmptyTiles = () => {
+      const tiles = [];
+      for (let y = 0; y < map.length; y++) {
+        for (let x = 0; x < map[0].length; x++) {
+          if (map[y][x] !== 1) {
+            tiles.push({ x, y });
+          }
+        }
+      }
+      return tiles;
+    };
+
+    const distributePellets = () => {
+      const questions = flattenQuestions();
+      const emptyTiles = getEmptyTiles();
+      if (questions.length === 0 || emptyTiles.length === 0) return;
+      const step = Math.max(1, Math.floor(emptyTiles.length / questions.length));
+      for (let i = 0; i < questions.length; i++) {
+        const baseIndex = i * step;
+        const randJitter = Math.floor(Math.random() * Math.min(step, emptyTiles.length));
+        const idx = Math.min(emptyTiles.length - 1, baseIndex + randJitter);
+        const tile = emptyTiles[idx];
+        const color = topicPalette[questions[i].topicIndex % topicPalette.length];
+        pellets.push({
+          x: tile.x,
+          y: tile.y,
+          color,
+          topicIndex: questions[i].topicIndex,
+          questionIndex: questions[i].questionIndex,
+          topicTitle: questions[i].topicTitle,
+        });
+      }
+      foodCount = pellets.length;
+    };
 
     const randomTargetForghosts = [
       { x: 1 * blockSize, y: 1 * blockSize },
@@ -408,23 +462,30 @@ export default function PacmanGame() {
     };
 
     const drawFood = () => {
-      for (let i = 0; i < map.length; i++) {
-        for (let j = 0; j < map[0].length; j++) {
-          if (map[i][j] === 2) {
-            createRect(j * blockSize + foodOffset * 1.5, i * blockSize + foodOffset * 1.5, foodOffset, foodOffset, foodColor);
-          }
-        }
+      for (let i = 0; i < pellets.length; i++) {
+        const p = pellets[i];
+        createRect(
+          p.x * blockSize + foodOffset * 1.5,
+          p.y * blockSize + foodOffset * 1.5,
+          foodOffset,
+          foodOffset,
+          p.color || foodColor
+        );
       }
     };
 
     const drawScore = () => {
       canvasContext.font = '20px ARIAl';
       canvasContext.fillStyle = 'white';
-      canvasContext.fillText('SCORE: ' + score, 0, blockSize * (map.length + 1));
+      const mapWidth = map[0].length * blockSize;
+      const offsetX = (canvas.width - mapWidth) / 2;
+      canvasContext.fillText('SCORE: ' + score, offsetX, blockSize * (map.length + 1));
     };
 
     const drawLives = () => {
-      const livesDrawingCoordinateX = blockSize * 7;
+      const mapWidth = map[0].length * blockSize;
+      const offsetX = (canvas.width - mapWidth) / 2;
+      const livesDrawingCoordinateX = offsetX + blockSize * 7;
       const livesDrawingCoordinateY = blockSize * (map.length + 1);
       canvasContext.font = '20px ARIAl';
       canvasContext.fillStyle = 'white';
@@ -453,35 +514,75 @@ export default function PacmanGame() {
     const drawGameOver = () => {
       canvasContext.font = '20px Emulogic';
       canvasContext.fillStyle = 'white';
-      canvasContext.fillText('GAME OVER!', 150, 200);
+      const mapWidth = map[0].length * blockSize;
+      const offsetX = (canvas.width - mapWidth) / 2;
+      const centerX = offsetX + mapWidth / 2;
+      canvasContext.fillText('GAME OVER!', centerX - 60, 200);
     };
 
     const drawWin = () => {
       canvasContext.font = '20px Emulogic';
       canvasContext.fillStyle = 'white';
-      canvasContext.fillText('YOU WIN!', 150, 200);
+      const mapWidth = map[0].length * blockSize;
+      const offsetX = (canvas.width - mapWidth) / 2;
+      const centerX = offsetX + mapWidth / 2;
+      canvasContext.fillText('YOU WIN!', centerX - 50, 200);
     };
 
     const draw = () => {
       createRect(0, 0, canvas.width, canvas.height, 'black');
+      
+      // Calculate offset to center the map (35 columns * 20px = 700px, canvas is 900px)
+      const mapWidth = map[0].length * blockSize; // 35 * 20 = 700
+      const mapHeight = map.length * blockSize;   // 23 * 20 = 460
+      const offsetX = (canvas.width - mapWidth) / 2;  // (900 - 700) / 2 = 100
+      const offsetY = (canvas.height - mapHeight) / 2; // (420 - 460) / 2 = -20
+      
+      // Save context and translate to center the map
+      canvasContext.save();
+      canvasContext.translate(offsetX, offsetY);
+      
       drawWalls();
       drawFood();
       pacman.draw();
-      drawScore();
       drawGhosts();
+      
+      // Restore context for UI elements that should stay in original position
+      canvasContext.restore();
+      
+      drawScore();
       drawLives();
     };
 
     const update = () => {
       pacman.moveProcess();
-      pacman.eat();
+      // check pellet collisions (one question per pellet)
+      for (let i = pellets.length - 1; i >= 0; i--) {
+        const p = pellets[i];
+        if (pacman.getMapX() === p.x && pacman.getMapY() === p.y) {
+          const topic = data?.topics?.[p.topicIndex];
+          const q = topic?.questions?.[p.questionIndex];
+          if (q && typeof onQuestionTrigger === 'function') {
+            onQuestionTrigger({
+              topicTitle: p.topicTitle,
+              topicIndex: p.topicIndex,
+              questionIndex: p.questionIndex,
+              question: q,
+            });
+          }
+          pellets.splice(i, 1);
+          score++;
+          break;
+        }
+      }
+      
       for (let i = 0; i < ghosts.length; i++) {
         ghosts[i].moveProcess();
       }
       if (pacman.checkGhostCollision()) {
         restartGame();
       }
-      if (score >= foodCount) {
+      if (pellets.length === 0 && foodCount > 0) {
         drawWin();
         if (gameInterval) clearInterval(gameInterval);
       }
@@ -545,6 +646,7 @@ export default function PacmanGame() {
 
     const startGameWhenImagesReady = () => {
       if (!pacmanFrames.complete || !ghostFrames.complete) return;
+      distributePellets();
       createNewPacman();
       createGhosts();
       if (animationTimerId) clearInterval(animationTimerId);
