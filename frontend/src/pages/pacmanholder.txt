@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../src/contexts/AuthContext';
-import NavBar from '../../src/components/NavBar';
+import { useAuth } from '../contexts/AuthContext';
+import NavBar from '../components/NavBar';
 import './PacmanScene.css';
-import PacmanGame from './PacmanGame.jsx';
 
 export default function PacmanScene() {
   const { currentUser, logout } = useAuth();
@@ -90,11 +89,16 @@ export default function PacmanScene() {
 
         <div className="maze-container">
           <div className="maze-placeholder">
-            <PacmanGame />
+
+            <canvas id="canvas" width="500" height="500"></canvas>
+
+            {/* <div style="display: none">
+              <img id="animation" src="../assets/animation.gif" width="140" height="20" />
+            </div> */}
+
+
           </div>
         </div>
-
-
 
         <div className="game-controls">
           <button className="control-button">←</button>
