@@ -1,4 +1,12 @@
 /* HomePage Clean Prompt Interface */
+html, body{
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+
 .homepage-container {
     min-height: 100vh;
     background: linear-gradient(135deg, #2c3e50 0%, #34495e 50%, #2c3e50 100%);
