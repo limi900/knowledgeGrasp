@@ -5,7 +5,7 @@
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     position: relative;
     overflow: hidden;
-    padding-top: 80px;
+    /* padding-top: 80px; */
 }
 
 .pacman-scene-container::before {
@@ -36,13 +36,21 @@
 }
 
 .question-section {
-    flex: 0 0 240px; /* Reduced height to make room for maze */
+    /* flex: 0 0 20vh; */
+    height: 40vh;
     padding: 0.5rem 1rem;
     overflow-y: visible; /* Remove scrolling */
+
+    margin: 0 auto;
+    width: 100%;
+
+    display: flex;
+    align-content: center;
+    place-content: center;
 }
 
 .game-section {
-    flex: 1 1 auto;
+    /* flex: 1 1 auto; */
     padding: 0.25rem 1rem 0.5rem 1rem;
     display: flex;
     align-items: center;
@@ -172,9 +180,12 @@
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.15);
     border-radius: 15px;
-    padding: 1rem;
+    /* padding: 1rem; */
     backdrop-filter: blur(10px);
+
     height: 100%;
+    width: 90%;
+
     display: flex;
     flex-direction: column;
     transition: all 0.3s ease;
@@ -217,6 +228,10 @@
     gap: 0.5rem;
     flex: 1;
     min-height: 120px; /* Reduced height */
+
+    margin-left: 15px;
+    margin-right: 15px;
+    margin-bottom: 15px;
 }
 
 .answer-option {
@@ -234,6 +249,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
+
+    /* max-width: 95%; */
 }
 
 .answer-option:hover:not(.disabled) {
@@ -313,7 +330,7 @@
 
 .maze-placeholder {
     width: 700px;
-    height: 440px;
+    height: 280px;
     background: rgba(0, 0, 0, 0.3);
     border: 2px solid rgba(255, 255, 255, 0.2);
     border-radius: 20px;
@@ -334,7 +351,7 @@
 /* Canvas size matches the actual game dimensions */
 #canvas {
     width: 700px;
-    height: 440px;
+    height: 280px;
     border-radius: 15px;
 }
 
@@ -412,6 +429,8 @@
         gap: 0.4rem;
         min-height: 100px;
     }
+
+
     
     .question-container {
         padding: 0.75rem;
@@ -469,7 +488,7 @@
         width: 100%;
         height: 100%;
         max-width: 600px;
-        max-height: 350px;
+        max-height: 250px;
     }
 }
 

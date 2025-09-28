@@ -182,6 +182,7 @@ export default function PacmanScene() {
         {/* Fixed Question Section */}
         <div className="question-section">
           <div className={`question-container ${isTransitioning ? 'transitioning' : ''}`}>
+
             <div className="question-topic">
               {activeTopicTitle ? `${activeTopicTitle}` : 'Waiting for question...'}
             </div>
@@ -213,6 +214,7 @@ export default function PacmanScene() {
                 🎯 Collect another pellet to get a new question!
               </div>
             )}
+
           </div>
         </div>
 

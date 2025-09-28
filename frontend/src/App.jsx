@@ -6,64 +6,29 @@ import LoginPage from "./authenticationPages/LoginPage.jsx";
 import UnidentifiedUserPage from './authenticationPages/UnidentifiedUserPage';
 import HomePage from './pages/HomePage';
 import PacmanScene from './pages/PacmanScene';
-import MazeManagement from './components/MazeManagement';
-import NavBar from './components/NavBar';
 
 function AppContent() {
   const { currentUser } = useAuth();
-  const [currentPage, setCurrentPage] = useState('mazes'); // Start with maze management
+  const [currentPage, setCurrentPage] = useState('home');
 
-  const handleNavigateToMazes = () => {
-    setCurrentPage('mazes');
+  const handleNavigateToPacman = () => {
+    setCurrentPage('pacman');
   };
 
   const handleNavigateToHome = () => {
     setCurrentPage('home');
   };
 
-  const handleNavigateToPacman = () => {
-    setCurrentPage('pacman');
-  };
+  // if (!currentUser) {
+  //   return <UnidentifiedUserPage />;
+  // }
 
-  const handleCreateNew = () => {
-    setCurrentPage('home');
-  };
+  // if (currentPage === 'pacman') {
+  //   return <PacmanScene onNavigateToHome={handleNavigateToHome} />;
+  // }
 
-  const handleLoadSaved = () => {
-    setCurrentPage('pacman');
-  };
-
-  if (!currentUser) {
-    return <UnidentifiedUserPage />;
-  }
-
-  if (currentPage === 'home') {
-    return (
-      <>
-        <NavBar onNavigateToMazes={handleNavigateToMazes} />
-        <HomePage onNavigateToPacman={handleNavigateToPacman} />
-      </>
-    );
-  }
-
-  if (currentPage === 'pacman') {
-    return (
-      <>
-        <NavBar onNavigateToMazes={handleNavigateToMazes} />
-        <PacmanScene onNavigateToHome={handleNavigateToHome} />
-      </>
-    );
-  }
-
-  return (
-    <>
-      <NavBar onNavigateToMazes={handleNavigateToMazes} />
-      <MazeManagement 
-        onCreateNew={handleCreateNew}
-        onLoadSaved={handleLoadSaved}
-      />
-    </>
-  );
+  // return <HomePage onNavigateToPacman={handleNavigateToPacman} />;
+  return <PacmanScene></PacmanScene>
 }
 
 function App() {
