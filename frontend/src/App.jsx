@@ -27,7 +27,8 @@ function AppContent() {
     return <PacmanScene onNavigateToHome={handleNavigateToHome} />;
   }
 
-  return <HomePage onNavigateToPacman={handleNavigateToPacman} />;
+  // return <HomePage onNavigateToPacman={handleNavigateToPacman} />;
+  return <PacmanScene></PacmanScene>
 }
 
 function App() {
