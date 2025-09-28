@@ -16,6 +16,12 @@ export default function PacmanScene() {
   const [answered, setAnswered] = useState(false);
   const [wasCorrect, setWasCorrect] = useState(null);
   const [activeTopicTitle, setActiveTopicTitle] = useState('');
+  
+  // Game progress state
+  const [gameScore, setGameScore] = useState(0);
+  const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [totalGameQuestions, setTotalGameQuestions] = useState(0);
+  const [remainingPellets, setRemainingPellets] = useState(0);
 
   useEffect(() => {
     // Get maze data from localStorage (set by HomePage after backend response)
@@ -69,6 +75,13 @@ export default function PacmanScene() {
     setWasCorrect(null);
   };
 
+  const handleScoreUpdate = ({ score, questionsAnswered, totalQuestions, remainingPellets }) => {
+    setGameScore(score);
+    setQuestionsAnswered(questionsAnswered);
+    setTotalGameQuestions(totalQuestions);
+    setRemainingPellets(remainingPellets);
+  };
+
   if (loading) {
     return (
 
@@ -99,11 +112,15 @@ export default function PacmanScene() {
           <div className="game-stats">
             <div className="stat">
               <span className="stat-label">Score:</span>
-              <span className="stat-value">{quizScore}</span>
+              <span className="stat-value">{gameScore}</span>
             </div>
             <div className="stat">
               <span className="stat-label">Questions:</span>
-              <span className="stat-value">{totalQuestions > 0 ? `1/${totalQuestions}` : '0/0'}</span>
+              <span className="stat-value">{totalGameQuestions > 0 ? `${questionsAnswered}/${totalGameQuestions}` : '0/0'}</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Pellets:</span>
+              <span className="stat-value">{remainingPellets}</span>
             </div>
           </div>
         </div>
@@ -163,7 +180,11 @@ export default function PacmanScene() {
 
         <div className="maze-container">
           <div className="maze-placeholder">
-            <PacmanGame data={mazeData} onQuestionTrigger={handleQuestionTrigger} />
+            <PacmanGame 
+              data={mazeData} 
+              onQuestionTrigger={handleQuestionTrigger}
+              onScoreUpdate={handleScoreUpdate}
+            />
           </div>
         </div>
 

@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-export default function PacmanGame({ data, onQuestionTrigger }) {
+export default function PacmanGame({ data, onQuestionTrigger, onScoreUpdate }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -32,6 +32,9 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
     let ghosts = [];
     let lives = 3;
     let foodCount = 0;
+    let totalQuestions = 0;
+    let questionsAnswered = 0;
+    let gameInitialized = false;
 
     const RIGHT = 4;
     const LEFT = 2;
@@ -125,9 +128,24 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
     };
 
     const distributePellets = () => {
+      // Clear existing pellets first
+      pellets.length = 0;
+      
       const questions = flattenQuestions();
       const emptyTiles = getReachableTiles();
-      if (questions.length === 0 || emptyTiles.length === 0) return;
+      
+      if (questions.length === 0 || emptyTiles.length === 0) {
+        console.log('No questions or empty tiles available for pellet distribution');
+        return;
+      }
+      
+      // Set total questions count
+      totalQuestions = questions.length;
+      questionsAnswered = 0;
+      
+      console.log(`Distributing ${totalQuestions} pellets across ${emptyTiles.length} empty tiles`);
+      
+      // Distribute pellets evenly across available empty tiles
       const step = Math.max(1, Math.floor(emptyTiles.length / questions.length));
       for (let i = 0; i < questions.length; i++) {
         const baseIndex = i * step;
@@ -135,6 +153,7 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
         const idx = Math.min(emptyTiles.length - 1, baseIndex + randJitter);
         const tile = emptyTiles[idx];
         const color = topicPalette[questions[i].topicIndex % topicPalette.length];
+        
         pellets.push({
           x: tile.x,
           y: tile.y,
@@ -142,9 +161,12 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
           topicIndex: questions[i].topicIndex,
           questionIndex: questions[i].questionIndex,
           topicTitle: questions[i].topicTitle,
+          question: questions[i].question
         });
       }
+      
       foodCount = pellets.length;
+      console.log(`Successfully distributed ${foodCount} pellets`);
     };
 
     const randomTargetForghosts = [
@@ -229,6 +251,9 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
       }
 
       moveForwards() {
+        const oldX = this.x;
+        const oldY = this.y;
+        
         switch (this.currentDirection) {
           case RIGHT:
             this.x += this.speed; break;
@@ -239,14 +264,38 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
           case DOWN:
             this.y += this.speed; break;
         }
+        
+        // Ensure we don't go outside the map boundaries
+        const mapWidth = map[0].length * blockSize;
+        const mapHeight = map.length * blockSize;
+        
+        if (this.x < 0) this.x = 0;
+        if (this.x + blockSize > mapWidth) this.x = mapWidth - blockSize;
+        if (this.y < 0) this.y = 0;
+        if (this.y + blockSize > mapHeight) this.y = mapHeight - blockSize;
       }
 
       checkCollision() {
+        // Get map coordinates
+        const mapX = this.getMapX();
+        const mapY = this.getMapY();
+        const mapXRight = this.getMapXRightSide();
+        const mapYRight = this.getMapYRightSide();
+        
+        // Check boundaries first
+        if (mapX < 0 || mapY < 0 || mapX >= map[0].length || mapY >= map.length) {
+          return true;
+        }
+        if (mapXRight < 0 || mapYRight < 0 || mapXRight >= map[0].length || mapYRight >= map.length) {
+          return true;
+        }
+        
+        // Check wall collisions
         if (
-          map[this.getMapY()][this.getMapX()] === 1 ||
-          map[this.getMapYRightSide()][this.getMapX()] === 1 ||
-          map[this.getMapY()][this.getMapXRightSide()] === 1 ||
-          map[this.getMapYRightSide()][this.getMapXRightSide()] === 1
+          map[mapY][mapX] === 1 ||
+          map[mapYRight][mapX] === 1 ||
+          map[mapY][mapXRight] === 1 ||
+          map[mapYRight][mapXRight] === 1
         ) {
           return true;
         }
@@ -362,14 +411,38 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
           case UP: this.y -= this.speed; break;
           case DOWN: this.y += this.speed; break;
         }
+        
+        // Ensure we don't go outside the map boundaries
+        const mapWidth = map[0].length * blockSize;
+        const mapHeight = map.length * blockSize;
+        
+        if (this.x < 0) this.x = 0;
+        if (this.x + blockSize > mapWidth) this.x = mapWidth - blockSize;
+        if (this.y < 0) this.y = 0;
+        if (this.y + blockSize > mapHeight) this.y = mapHeight - blockSize;
       }
 
       checkCollision() {
+        // Get map coordinates
+        const mapX = this.getMapX();
+        const mapY = this.getMapY();
+        const mapXRight = this.getMapXRightSide();
+        const mapYRight = this.getMapYRightSide();
+        
+        // Check boundaries first
+        if (mapX < 0 || mapY < 0 || mapX >= map[0].length || mapY >= map.length) {
+          return true;
+        }
+        if (mapXRight < 0 || mapYRight < 0 || mapXRight >= map[0].length || mapYRight >= map.length) {
+          return true;
+        }
+        
+        // Check wall collisions
         if (
-          map[this.getMapY()][this.getMapX()] === 1 ||
-          map[this.getMapYRightSide()][this.getMapX()] === 1 ||
-          map[this.getMapY()][this.getMapXRightSide()] === 1 ||
-          map[this.getMapYRightSide()][this.getMapXRightSide()] === 1
+          map[mapY][mapX] === 1 ||
+          map[mapYRight][mapX] === 1 ||
+          map[mapY][mapXRight] === 1 ||
+          map[mapYRight][mapXRight] === 1
         ) {
           return true;
         }
@@ -501,15 +574,11 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
     const drawScore = () => {
       canvasContext.font = '20px ARIAl';
       canvasContext.fillStyle = 'white';
-      const mapWidth = map[0].length * blockSize;
-      const offsetX = (canvas.width - mapWidth) / 2;
-      canvasContext.fillText('SCORE: ' + score, offsetX, blockSize * (map.length + 1));
+      canvasContext.fillText('SCORE: ' + score, 10, blockSize * (map.length + 1));
     };
 
     const drawLives = () => {
-      const mapWidth = map[0].length * blockSize;
-      const offsetX = (canvas.width - mapWidth) / 2;
-      const livesDrawingCoordinateX = offsetX + blockSize * 7;
+      const livesDrawingCoordinateX = blockSize * 7;
       const livesDrawingCoordinateY = blockSize * (map.length + 1);
       canvasContext.font = '20px ARIAl';
       canvasContext.fillStyle = 'white';
@@ -538,74 +607,79 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
     const drawGameOver = () => {
       canvasContext.font = '20px Emulogic';
       canvasContext.fillStyle = 'white';
-      const mapWidth = map[0].length * blockSize;
-      const offsetX = (canvas.width - mapWidth) / 2;
-      const centerX = offsetX + mapWidth / 2;
+      const centerX = canvas.width / 2;
       canvasContext.fillText('GAME OVER!', centerX - 60, 200);
     };
 
     const drawWin = () => {
       canvasContext.font = '20px Emulogic';
       canvasContext.fillStyle = 'white';
-      const mapWidth = map[0].length * blockSize;
-      const offsetX = (canvas.width - mapWidth) / 2;
-      const centerX = offsetX + mapWidth / 2;
+      const centerX = canvas.width / 2;
       canvasContext.fillText('YOU WIN!', centerX - 50, 200);
     };
 
     const draw = () => {
       createRect(0, 0, canvas.width, canvas.height, 'black');
       
-      // Calculate offset to center the map (35 columns * 20px = 700px, canvas is 900px)
-      const mapWidth = map[0].length * blockSize; // 35 * 20 = 700
-      const mapHeight = map.length * blockSize;
-      const offsetX = (canvas.width - mapWidth) / 2;
-      const offsetY = Math.max(0, (canvas.height - mapHeight) / 2);
-      
-      // Save context and translate to center the map
-      canvasContext.save();
-      canvasContext.translate(offsetX, offsetY);
-      
       drawWalls();
       drawFood();
       pacman.draw();
       drawGhosts();
-      
-      // Restore context for UI elements that should stay in original position
-      canvasContext.restore();
-      
       drawScore();
       drawLives();
     };
 
     const update = () => {
+      // Only move characters if game is initialized
+      if (!gameInitialized) return;
+      
       pacman.moveProcess();
+      
       // check pellet collisions (one question per pellet)
       for (let i = pellets.length - 1; i >= 0; i--) {
         const p = pellets[i];
         if (pacman.getMapX() === p.x && pacman.getMapY() === p.y) {
-          const topic = data?.topics?.[p.topicIndex];
-          const q = topic?.questions?.[p.questionIndex];
-          if (q && typeof onQuestionTrigger === 'function') {
+          // Trigger question display
+          if (typeof onQuestionTrigger === 'function') {
             onQuestionTrigger({
               topicTitle: p.topicTitle,
               topicIndex: p.topicIndex,
               questionIndex: p.questionIndex,
-              question: q,
+              question: p.question,
             });
           }
+          
+          // Remove pellet and update counters
           pellets.splice(i, 1);
           score++;
+          questionsAnswered++;
+          
+          // Update parent component with new score and progress
+          if (typeof onScoreUpdate === 'function') {
+            onScoreUpdate({
+              score: score,
+              questionsAnswered: questionsAnswered,
+              totalQuestions: totalQuestions,
+              remainingPellets: pellets.length
+            });
+          }
+          
+          console.log(`Pellet collected! Score: ${score}, Questions answered: ${questionsAnswered}/${totalQuestions}`);
           break;
         }
       }
       
+      // Move ghosts
       for (let i = 0; i < ghosts.length; i++) {
         ghosts[i].moveProcess();
       }
+      
+      // Check ghost collision
       if (pacman.checkGhostCollision()) {
         restartGame();
       }
+      
+      // Check win condition
       if (pellets.length === 0 && foodCount > 0) {
         drawWin();
         if (gameInterval) clearInterval(gameInterval);
@@ -642,11 +716,14 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
     };
 
     const restartGame = () => {
+      console.log('Restarting game...');
       createNewPacman();
       createGhosts();
       lives--;
       if (lives === 0) {
         gameOver();
+      } else {
+        console.log(`Lives remaining: ${lives}`);
       }
     };
 
@@ -670,14 +747,29 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
 
     const startGameWhenImagesReady = () => {
       if (!pacmanFrames.complete || !ghostFrames.complete) return;
+      
+      console.log('Initializing game...');
+      
+      // Generate pellets and questions once at the start
       distributePellets();
+      
+      // Create game characters
       createNewPacman();
       createGhosts();
+      
+      // Start game loops
       if (animationTimerId) clearInterval(animationTimerId);
       animationTimerId = setInterval(() => pacman.changeAnimation(), 100);
       if (gameInterval) clearInterval(gameInterval);
       gameInterval = setInterval(gameLoop, 1000 / fps);
+      
+      // Add event listeners
       window.addEventListener('keydown', handleKeyDown);
+      
+      // Mark game as initialized
+      gameInitialized = true;
+      
+      console.log(`Game initialized with ${totalQuestions} questions and ${foodCount} pellets`);
     };
 
     if (pacmanFrames.complete && ghostFrames.complete) {
@@ -699,7 +791,7 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
   }, []);
 
   return (
-    <canvas ref={canvasRef} id="canvas" width="900" height="420"></canvas>
+    <canvas ref={canvasRef} id="canvas" width="700" height="440"></canvas>
   );
 }
 
