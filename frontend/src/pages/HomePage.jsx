@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import './HomePage.css';
-import NavBar from '../components/NavBar';
 
 export default function HomePage({ onNavigateToPacman }) {
   const { currentUser, logout } = useAuth();
@@ -63,7 +62,6 @@ export default function HomePage({ onNavigateToPacman }) {
 
   return (
     <div className="homepage-container">
-      <NavBar/>
       <div className="main-content">
         <div className="header-section">
           <h1 className="main-title">🎮KnowledgeGrasp </h1>

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import './NavBar.css';
 
-export default function NavBar() {
+export default function NavBar({ onNavigateToMazes }) {
   const { currentUser, logout } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -26,7 +26,7 @@ export default function NavBar() {
     <nav className="navbar">
       <div className="navbar-container">
         <div className="navbar-left">
-          <div className="maze-selector">
+          <div className="maze-selector" onClick={onNavigateToMazes}>
             <span>Your mazes</span>
           </div>
         </div>

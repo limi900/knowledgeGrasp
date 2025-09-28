@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../src/contexts/AuthContext';
-import NavBar from '../../src/components/NavBar';
 import './PacmanScene.css';
 import PacmanGame from './PacmanGame.jsx';
 
@@ -82,12 +81,42 @@ export default function PacmanScene() {
     setRemainingPellets(remainingPellets);
   };
 
+  const handleSaveMaze = () => {
+    if (!mazeData) return;
+    
+    const mazeName = prompt('Enter a name for your maze:', `Maze ${new Date().toLocaleDateString()}`);
+    if (!mazeName) return;
+    
+    try {
+      const savedMazes = JSON.parse(localStorage.getItem(`savedMazes_${currentUser?.email}`) || '[]');
+      
+      const mazeToSave = {
+        name: mazeName,
+        data: mazeData,
+        progress: {
+          score: gameScore,
+          questionsAnswered: questionsAnswered,
+          totalQuestions: totalGameQuestions,
+          remainingPellets: remainingPellets
+        },
+        savedAt: Date.now()
+      };
+      
+      savedMazes.push(mazeToSave);
+      localStorage.setItem(`savedMazes_${currentUser?.email}`, JSON.stringify(savedMazes));
+      
+      alert('Maze saved successfully!');
+    } catch (error) {
+      console.error('Error saving maze:', error);
+      alert('Failed to save maze. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
 
       <div>
           <div className="pacman-scene-container">
-          <NavBar />
           <div className="loading-screen">
             <div className="loading-content">
               <h1 className="loading-title">🎮 Generating Your Maze...</h1>
@@ -104,8 +133,6 @@ export default function PacmanScene() {
 
   return (
     <div className="pacman-scene-container">
-      <NavBar />
-      
       <div className="game-area">
         <div className="game-header">
           <h1 className="game-title">🎮 Knowledge Quest Maze</h1>
@@ -122,6 +149,9 @@ export default function PacmanScene() {
               <span className="stat-label">Pellets:</span>
               <span className="stat-value">{remainingPellets}</span>
             </div>
+            <button className="save-button" onClick={handleSaveMaze}>
+              💾 Save Maze
+            </button>
           </div>
         </div>
 
