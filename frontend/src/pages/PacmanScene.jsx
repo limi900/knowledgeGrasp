@@ -1,0 +1,87 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
+import NavBar from '../components/NavBar';
+import './PacmanScene.css';
+
+export default function PacmanScene() {
+  const { currentUser, logout } = useAuth();
+  const [mazeData, setMazeData] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Get maze data from localStorage (set by HomePage after backend response)
+    const savedMazeData = localStorage.getItem('mazeData');
+    if (savedMazeData) {
+      try {
+        const parsedData = JSON.parse(savedMazeData);
+        setMazeData(parsedData);
+        console.log('Loaded maze data:', parsedData);
+      } catch (error) {
+        console.error('Error parsing maze data:', error);
+      }
+    }
+    
+    // Simulate loading time for better UX
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="pacman-scene-container">
+        <NavBar />
+        <div className="loading-screen">
+          <div className="loading-content">
+            <h1 className="loading-title">🎮 Generating Your Maze...</h1>
+            <p className="loading-subtitle">Preparing your learning adventure</p>
+            <div className="loading-spinner"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="pacman-scene-container">
+      <NavBar />
+      
+      <div className="game-area">
+        <div className="game-header">
+          <h1 className="game-title">🎮 Knowledge Quest Maze</h1>
+          <div className="game-stats">
+            <div className="stat">
+              <span className="stat-label">Score:</span>
+              <span className="stat-value">0</span>
+            </div>
+            <div className="stat">
+              <span className="stat-label">Questions:</span>
+              <span className="stat-value">0/10</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="maze-container">
+          <div className="maze-placeholder">
+            <div className="pacman-character">👤</div>
+            <div className="question-pellet">❓</div>
+            <div className="question-pellet">❓</div>
+            <div className="question-pellet">❓</div>
+            <div className="question-pellet">❓</div>
+            <p className="maze-text">Maze will be rendered here</p>
+            <p className="maze-subtext">Collect question pellets to learn!</p>
+          </div>
+        </div>
+
+        <div className="game-controls">
+          <button className="control-button">←</button>
+          <button className="control-button">↑</button>
+          <button className="control-button">↓</button>
+          <button className="control-button">→</button>
+        </div>
+      </div>
+    </div>
+  );
+}

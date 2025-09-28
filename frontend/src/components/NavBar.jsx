@@ -1,51 +1,66 @@
-import { useState } from "react";
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import './NavBar.css'
+import './NavBar.css';
 
-const Navbar = () => {
-    const { currentUser, logout } = useAuth();
+export default function NavBar() {
+  const { currentUser, logout } = useAuth();
+  const [showDropdown, setShowDropdown] = useState(false);
 
-    const handleLogout = () => {
-        logout();
-    };
+  const handleLogout = () => {
+    logout();
+    setShowDropdown(false);
+  };
 
-    const mazeBax = () => {
-        //chis, do this part
+  const toggleDropdown = () => {
+    setShowDropdown(!showDropdown);
+  };
+
+  // Close dropdown when clicking outside
+  const handleClickOutside = (e) => {
+    if (!e.target.closest('.profile-dropdown-container')) {
+      setShowDropdown(false);
     }
+  };
 
-    return (
-        <nav className="h-20 bg-white px-6 flex items-center justify-evenly border-b shadow-sm">
-
-            <div className="part">
-
-
-                <button className="border-2 border-blue-500 text-blue-500 rounded-lg px-3 py-1 hover:bg-blue-100 transition cursor-pointer">
-                    Your Mazes
-                </button>
-
+  return (
+    <nav className="navbar">
+      <div className="navbar-container">
+        <div className="navbar-left">
+          <div className="maze-selector">
+            <span>Your mazes</span>
+          </div>
+        </div>
+        
+        <div className="navbar-center">
+          <h1 className="navbar-title">Knowledge Grasp</h1>
+        </div>
+        
+        <div className="navbar-right">
+          <div className="profile-dropdown-container" onClick={handleClickOutside}>
+            <div className="profile-icon" onClick={toggleDropdown}>
+              <span>•</span>
             </div>
-
-            <div className="part">
-                <span className=" text-xl font-semibold text-purple-600">
-                    KnowledgeGrasp
-                </span>
-
-            </div>
-
-
-            <div className="part">
-                <button
-                    className=" border-4 border-blue-500 text-blue-500 rounded-lg px-4 py-1 hover:bg-blue-100 transition"
-                    onClick={handleLogout}>
-                    Logout
-                </button>
-
-            </div>
-
-
-        </nav>
-
-    )
+            
+            {showDropdown && (
+              <div className="profile-dropdown">
+                <div className="dropdown-header">
+                  <div className="user-info">
+                    <div className="user-email">{currentUser?.email}</div>
+                  </div>
+                </div>
+                
+                <div className="dropdown-divider"></div>
+                
+                <div className="dropdown-menu">
+                  <button className="dropdown-item logout-item" onClick={handleLogout}>
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </nav>
+  );
 }
-
-export default Navbar;
