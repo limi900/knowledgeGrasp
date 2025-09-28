@@ -4,10 +4,24 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>my-app</title>
+    <title>knowledgeGrasp</title>
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+  <!--<body> -->
+  <body style="margin: 0px; background-color: black">
+  
+  <!-- the canvas tag is used to display graphics -->
+  <canvas id="canvas" width="500" height="500"></canvas> <!-- added -->
+    <!--<div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script> -->
+  
+  
+  <div style="display: none">
+        <img id="animation" src="assets/animations.gif" width="140" height="20">
+        <img id="ghosts" src="assets/ghost.png" width="140" height=""20>
+    </div>
+
+    <script src="ghost.js"></script>
+    <script src="pacman.js"></script>
+    <script src="game.js"></script>
   </body>
 </html>
