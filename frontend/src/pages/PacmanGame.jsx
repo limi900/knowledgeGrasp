@@ -651,13 +651,11 @@ export default function PacmanGame({ data, onQuestionTrigger, onScoreUpdate }) {
           
           // Remove pellet and update counters
           pellets.splice(i, 1);
-          score++;
           questionsAnswered++;
           
-          // Update parent component with new score and progress
+          // Update parent component with progress (score is handled by quiz logic)
           if (typeof onScoreUpdate === 'function') {
             onScoreUpdate({
-              score: score,
               questionsAnswered: questionsAnswered,
               totalQuestions: totalQuestions,
               remainingPellets: pellets.length

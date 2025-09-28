@@ -96,8 +96,7 @@ export default function PacmanScene() {
     }, 150);
   };
 
-  const handleScoreUpdate = ({ score, questionsAnswered, totalQuestions, remainingPellets }) => {
-    setGameScore(score);
+  const handleScoreUpdate = ({ questionsAnswered, totalQuestions, remainingPellets }) => {
     setQuestionsAnswered(questionsAnswered);
     setTotalGameQuestions(totalQuestions);
     setRemainingPellets(remainingPellets);
@@ -116,7 +115,7 @@ export default function PacmanScene() {
         name: mazeName,
         data: mazeData,
         progress: {
-          score: gameScore,
+          score: quizScore,
           questionsAnswered: questionsAnswered,
           totalQuestions: totalGameQuestions,
           remainingPellets: remainingPellets
@@ -163,7 +162,7 @@ export default function PacmanScene() {
             <div className="game-stats">
               <div className="stat">
                 <span className="stat-label">Score:</span>
-                <span className="stat-value">{gameScore}</span>
+                <span className="stat-value">{quizScore}</span>
               </div>
               <div className="stat">
                 <span className="stat-label">Questions:</span>
