@@ -67,7 +67,7 @@
 
 /* Game Area */
 .game-area {
-    padding: 1.5rem 1rem;
+    padding: 0rem 1rem;
     position: relative;
     z-index: 2;
     height: calc(100vh - 80px);
@@ -76,7 +76,7 @@
 
 .game-header {
     text-align: center;
-    margin-bottom: 2rem;
+    /* margin-bottom: 0rem; */
 }
 
 .game-title {
@@ -219,37 +219,6 @@
     margin: 0;
 }
 
-/* Game Controls */
-.game-controls {
-    display: flex;
-    justify-content: center;
-    gap: 1rem;
-    margin-top: 2rem;
-}
-
-.control-button {
-    width: 60px;
-    height: 60px;
-    background: linear-gradient(135deg, #3498db, #2980b9);
-    border: none;
-    border-radius: 12px;
-    color: white;
-    font-size: 1.5rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-}
-
-.control-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
-}
-
-.control-button:active {
-    transform: translateY(0);
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
     .game-title {
@@ -273,15 +242,6 @@
         height: 100%;
     }
     
-    .control-button {
-        width: 50px;
-        height: 50px;
-        font-size: 1.2rem;
-    }
-    
-    .game-controls {
-        gap: 0.5rem;
-    }
 }
 
 

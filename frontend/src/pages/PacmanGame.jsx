@@ -99,12 +99,25 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
       return list;
     };
 
-    const getEmptyTiles = () => {
+    const getReachableTiles = () => {
+      const rows = map.length;
+      const cols = map[0].length;
+      const visited = Array.from({ length: rows }, () => Array(cols).fill(false));
       const tiles = [];
-      for (let y = 0; y < map.length; y++) {
-        for (let x = 0; x < map[0].length; x++) {
-          if (map[y][x] !== 1) {
-            tiles.push({ x, y });
+      const queue = [];
+      const start = { x: 1, y: 1 };
+      if (map[start.y]?.[start.x] === 1) return tiles;
+      queue.push(start);
+      visited[start.y][start.x] = true;
+      const dirs = [ [1,0], [-1,0], [0,1], [0,-1] ];
+      while (queue.length) {
+        const { x, y } = queue.shift();
+        tiles.push({ x, y });
+        for (const [dx, dy] of dirs) {
+          const nx = x + dx, ny = y + dy;
+          if (ny >= 0 && ny < rows && nx >= 0 && nx < cols && !visited[ny][nx] && map[ny][nx] !== 1) {
+            visited[ny][nx] = true;
+            queue.push({ x: nx, y: ny });
           }
         }
       }
@@ -113,7 +126,7 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
 
     const distributePellets = () => {
       const questions = flattenQuestions();
-      const emptyTiles = getEmptyTiles();
+      const emptyTiles = getReachableTiles();
       if (questions.length === 0 || emptyTiles.length === 0) return;
       const step = Math.max(1, Math.floor(emptyTiles.length / questions.length));
       for (let i = 0; i < questions.length; i++) {
@@ -146,12 +159,35 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
       canvasContext.fillRect(x, y, width, height);
     };
 
+    const drawStar = (cx, cy, spikes, outerRadius, innerRadius, color) => {
+      let rot = Math.PI / 2 * 3;
+      let x = cx;
+      let y = cy;
+      const step = Math.PI / spikes;
+      canvasContext.beginPath();
+      canvasContext.moveTo(cx, cy - outerRadius);
+      for (let i = 0; i < spikes; i++) {
+        x = cx + Math.cos(rot) * outerRadius;
+        y = cy + Math.sin(rot) * outerRadius;
+        canvasContext.lineTo(x, y);
+        rot += step;
+        x = cx + Math.cos(rot) * innerRadius;
+        y = cy + Math.sin(rot) * innerRadius;
+        canvasContext.lineTo(x, y);
+        rot += step;
+      }
+      canvasContext.lineTo(cx, cy - outerRadius);
+      canvasContext.closePath();
+      canvasContext.fillStyle = color;
+      canvasContext.fill();
+    };
+
     class Pacman {
       constructor(x, y, width, height, speed) {
         this.x = x;
         this.y = y;
         this.width = width;
-        this.heigth = height;
+        this.height = height;
         this.speed = speed;
         this.currentDirection = RIGHT;
         this.nextDirection = this.currentDirection;
@@ -228,7 +264,7 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
       }
 
       changeDirectionIfPossible() {
-        if (this.direction === this.nextDirection) return;
+        if (this.currentDirection === this.nextDirection) return;
         const tempDirection = this.currentDirection;
         this.currentDirection = this.nextDirection;
         this.moveForwards();
@@ -258,7 +294,7 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
           this.x,
           this.y,
           this.width,
-          this.heigth
+          this.height
         );
         canvasContext.restore();
       }
@@ -274,7 +310,7 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
         this.x = x;
         this.y = y;
         this.width = width;
-        this.heigth = height;
+        this.height = height;
         this.speed = speed;
         this.currentDirection = RIGHT;
         this.currentFrame = 1;
@@ -417,18 +453,8 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
           this.x,
           this.y,
           this.width,
-          this.heigth
+          this.height
         );
-        canvasContext.beginPath();
-        canvasContext.strokeStyle = 'red';
-        canvasContext.arc(
-          this.x + blockSize / 2,
-          this.y + blockSize / 2,
-          this.range * blockSize,
-          0,
-          2 * Math.PI
-        );
-        canvasContext.stroke();
       }
 
       getMapX() { return parseInt(this.x / blockSize); }
@@ -462,15 +488,13 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
     };
 
     const drawFood = () => {
+      const starOuter = blockSize * 0.42;
+      const starInner = starOuter * 0.5;
       for (let i = 0; i < pellets.length; i++) {
         const p = pellets[i];
-        createRect(
-          p.x * blockSize + foodOffset * 1.5,
-          p.y * blockSize + foodOffset * 1.5,
-          foodOffset,
-          foodOffset,
-          p.color || foodColor
-        );
+        const cx = p.x * blockSize + blockSize / 2;
+        const cy = p.y * blockSize + blockSize / 2;
+        drawStar(cx, cy, 5, starOuter, starInner, p.color || foodColor);
       }
     };
 
@@ -534,9 +558,9 @@ export default function PacmanGame({ data, onQuestionTrigger }) {
       
       // Calculate offset to center the map (35 columns * 20px = 700px, canvas is 900px)
       const mapWidth = map[0].length * blockSize; // 35 * 20 = 700
-      const mapHeight = map.length * blockSize;   // 23 * 20 = 460
-      const offsetX = (canvas.width - mapWidth) / 2;  // (900 - 700) / 2 = 100
-      const offsetY = (canvas.height - mapHeight) / 2; // (420 - 460) / 2 = -20
+      const mapHeight = map.length * blockSize;
+      const offsetX = (canvas.width - mapWidth) / 2;
+      const offsetY = Math.max(0, (canvas.height - mapHeight) / 2);
       
       // Save context and translate to center the map
       canvasContext.save();

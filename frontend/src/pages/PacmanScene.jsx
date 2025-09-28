@@ -169,12 +169,6 @@ export default function PacmanScene() {
 
 
 
-        <div className="game-controls">
-          <button className="control-button">←</button>
-          <button className="control-button">↑</button>
-          <button className="control-button">↓</button>
-          <button className="control-button">→</button>
-        </div>
       </div>
     </div>
   );
