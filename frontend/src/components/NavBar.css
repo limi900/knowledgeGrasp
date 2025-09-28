@@ -1,0 +1,24 @@
+.part {
+    margin: 0 auto;
+    height: 75px;
+    background-color: blue;
+    text-align: center;
+    align-content: center;
+    place-content: center;
+    vertical-align: middle;
+}
+
+nav {
+    align-content: left;
+    place-content: left;
+    margin: 0 auto;
+
+    width: 100%;
+
+    display: block;
+    background-color: red;
+    display: flex;
+
+    gap: 150px;
+
+}
