@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import SignUpPage from "./authenticationPages/SignUpPage.jsx";
 import LoginPage from "./authenticationPages/LoginPage.jsx";
 import UnidentifiedUserPage from './authenticationPages/UnidentifiedUserPage';
-import HomePage from './components/HomePage';
+import HomePage from './pages/HomePage';
 
 function AppContent() {
   const { currentUser } = useAuth();
