@@ -12,7 +12,7 @@ This project was created for hackUMBC 2025. It is an interactive game that aims 
 6. **Manage Mazes**: View, load, and delete your saved learning adventures
 
 ## Game Mechanics:
-* **Maze Navigation**: Use arrow keys or WASD to control Pac-Man through the maze
+* **Maze Navigation**: Use arrow keys to control Pac-Man through the maze
 * **Question Triggers**: Collect pellets to trigger questions from your study topic
 * **Scoring System**: Earn points only for correct answers (not just pellet collection)
 * **Question Timing**: Answer questions within the time limit with smooth transitions
