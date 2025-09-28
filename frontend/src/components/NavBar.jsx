@@ -38,7 +38,13 @@ export default function NavBar({ onNavigateToMazes }) {
         <div className="navbar-right">
           <div className="profile-dropdown-container" onClick={handleClickOutside}>
             <div className="profile-icon" onClick={toggleDropdown}>
-              <span>•</span>
+              {currentUser?.email ? (
+                <span className="profile-initials">
+                  {currentUser.email.charAt(0).toUpperCase()}
+                </span>
+              ) : (
+                <span>•</span>
+              )}
             </div>
             
             {showDropdown && (
